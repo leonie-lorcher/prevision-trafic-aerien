@@ -152,10 +152,12 @@ forecast_df = baseline_model.predict(future_df)
 # Dans le dataframe de prédiction, garder uniquement les données prédites pour le graph.
 forecast_ddf = forecast_df[['ds', 'yhat']].tail(nb_periods)
 
+filtered_forecast_df = forecast_ddf[(forecast_ddf['ds'] >= min_date) & (forecast_ddf['ds'] <= max_date) ]
+
 # Graph
 fig = px.line(filtered_df, x = 'ds', y = 'y', title = 'Historique et prédiction du trafic sur la ligne aérienne')
 fig.update_traces(line_color = 'skyblue', name = 'Historique', showlegend = True)
-fig.add_scatter(x = forecast_ddf['ds'], y = forecast_ddf['yhat'], mode = 'lines', name = 'Prédiction', line = dict(color='salmon'))
+fig.add_scatter(x = filtered_forecast_df['ds'], y = filtered_forecast_df['yhat'], mode = 'lines', name = 'Prédiction', line = dict(color='salmon'))
 fig.update_layout(xaxis_title = 'Date', yaxis_title = 'Nombre total de passagers')
 
 # Création du bouton
