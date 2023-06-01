@@ -104,7 +104,7 @@ ligne_aer_df = ligne_aer_df.rename(columns={'date': 'ds', 'pax_total': 'y'})
 
 st.subheader("2. Évolution du trafic")
 
-st.caption("Le curseur ci-dessous vous permet de sélectionner les dates qui vous intéressent plus facilement. Cela impactera également le graph de la partie 3.")
+st.caption("Le curseur ci-dessous vous permet de sélectionner les dates qui vous intéressent plus facilement.")
 
 # Récupérer le min et le max des dates dans le dataset
 min_date = ligne_aer_df['ds'].min().strftime('%Y-%m-%d')
@@ -114,17 +114,17 @@ max_date = ligne_aer_df['ds'].max().strftime('%Y-%m-%d')
 max_date = datetime.strptime(max_date, '%Y-%m-%d').date()
 
 # Créer le date slider
-selected_dates = st.slider(
+selected_dates_1 = st.slider(
     "Sélecteur de dates",
     min_value = min_date,
     max_value = max_date,
     value = [min_date, max_date]
 )
 
-min_date = pd.to_datetime(selected_dates[0])
-max_date = pd.to_datetime(selected_dates[1])
+min_date = pd.to_datetime(selected_dates_1[0])
+max_date = pd.to_datetime(selected_dates_1[1])
 
-filtered_df = ligne_aer_df[(ligne_aer_df['ds'] >= min_date) & (ligne_aer_df['ds'] <= max_date) ]
+filtered_df = ligne_aer_df[(ligne_aer_df['ds'] >= min_date) & (ligne_aer_df['ds'] <= max_date)]
 
 st.markdown(" **Série temporelle du nombre de passagers ayant voyagé sur la ligne aérienne sélectionnée :** ")
 
@@ -146,13 +146,33 @@ nb_periods = st.number_input('Combien de jours voulez-vous prédire ?', min_valu
 # Génère un dataframe de dates, avec 15 jours en plus
 future_df = baseline_model.make_future_dataframe(periods = nb_periods)
 
-# Produire une prédiction du nombre total de passagers (pax total) sur les 15 prochains jours
+# Produire une prédiction du nombre total de passagers (pax total) sur les n prochains jours
 forecast_df = baseline_model.predict(future_df)
 
 # Dans le dataframe de prédiction, garder uniquement les données prédites pour le graph.
 forecast_ddf = forecast_df[['ds', 'yhat']].tail(nb_periods)
 
-filtered_forecast_df = forecast_ddf[(forecast_ddf['ds'] >= min_date) & (forecast_ddf['ds'] <= max_date) ]
+# Récupérer le min du dataset original, et le max des dates dans le dataset de prédiction
+min_date = ligne_aer_df['ds'].min().strftime('%Y-%m-%d')
+min_date = datetime.strptime(min_date, '%Y-%m-%d').date()
+
+max_date = forecast_ddf['ds'].max().strftime('%Y-%m-%d')
+max_date = datetime.strptime(max_date, '%Y-%m-%d').date()
+
+# Créer le date slider
+selected_dates_2 = st.slider(
+    "Sélecteur de dates",
+    min_value = min_date,
+    max_value = max_date,
+    value = [min_date, max_date]
+)
+
+min_date = pd.to_datetime(selected_dates_2[0])
+max_date = pd.to_datetime(selected_dates_2[1])
+
+filtered_df = ligne_aer_df[(ligne_aer_df['ds'] >= min_date) & (ligne_aer_df['ds'] <= max_date)]
+filtered_forecast_df = forecast_ddf[(forecast_ddf['ds'] <= max_date)]
+#filtered_forecast_df = forecast_ddf[forecast_ddf['ds'] >= min_date]
 
 # Graph
 fig = px.line(filtered_df, x = 'ds', y = 'y', title = 'Historique et prédiction du trafic sur la ligne aérienne')
@@ -170,11 +190,3 @@ else:
 st.divider()
 
 st.caption("Léonie LORCHER (Master 2 Econométrie, Big Data, Statistiques - Aix-Marseille School of Economics)")
-
-
-
-
-
-
-
-
